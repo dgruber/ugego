@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-package uge_go_helper
+package ugego
 
 import (
 	"encoding/xml"
