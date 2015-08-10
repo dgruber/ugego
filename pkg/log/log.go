@@ -39,9 +39,11 @@ type GELog struct {
 	File *os.File
 }
 
-// MakeLog creates a log object which is used for writing logfiles
-// in Grid Engine's master messages log file format.
-func MakeLog(component, hostname string, file *os.File) *GELog {
+// MakeLoggerHostname creates a log object which is used for writing logfiles
+// in Grid Engine's master messages log file format. The difference to MakeLog
+// is that the hostname is not autoamtically derived. (this is required when
+// the hostname in the log output should be different to the current host)
+func MakeLoggerHostname(component, hostname string, file *os.File) *GELog {
 	var log GELog
 	log.Component = component
 	log.Hostname = hostname
@@ -49,59 +51,69 @@ func MakeLog(component, hostname string, file *os.File) *GELog {
 	return &log
 }
 
+// MakeLoggerHostname creates a log object which is used for writing logfiles
+// in Grid Engine's master messages log file format.
+func MakeLogger(component string, file *os.File) *GELog {
+	var log GELog
+	log.Component = component
+	log.Hostname, _ = os.Hostname()
+	log.File = file
+	return &log
+}
+
 func (g *GELog) printMessage(level, component, format string, a ...interface{}) {
-	layout := "02/01/2006 15:04:05.999"
+	layout := "02/01/2006 15:04:05.000"
 	msg := fmt.Sprintf(format, a...)
 	t := time.Now()
 	fmt.Fprintf(g.File, "%s|%17s|%s|%s|%s\n", t.Format(layout), component, g.Hostname, level, msg)
 }
 
-// Info prints an INFO level log message for a given component (like thread).
-func (g *GELog) Info(component string, format string, a ...interface{}) {
+// InfoC prints an INFO level log message for a given component (like thread).
+func (g *GELog) InfoC(component string, format string, a ...interface{}) {
 	g.printMessage("I", component, format, a...)
 }
 
-// I prints an INFO level log message using the pre-configured component.
-func (g *GELog) I(format string, a ...interface{}) {
-	g.Info(g.Component, format, a...)
+// Info prints an INFO level log message using the pre-configured component.
+func (g *GELog) Info(format string, a ...interface{}) {
+	g.InfoC(g.Component, format, a...)
 }
 
-// Warning prints a WARNING level log message for a given component (like thread).
-func (g *GELog) Warning(component string, format string, a ...interface{}) {
+// WarningC prints a WARNING level log message for a given component (like thread).
+func (g *GELog) WarningC(component string, format string, a ...interface{}) {
 	g.printMessage("W", component, format, a...)
 }
 
-// W prints a WARNING level log message using the pre-configured component.
-func (g *GELog) W(format string, a ...interface{}) {
-	g.Warning(g.Component, format, a...)
+// Warning prints a WARNING level log message using the pre-configured component.
+func (g *GELog) Warning(format string, a ...interface{}) {
+	g.WarningC(g.Component, format, a...)
 }
 
-// Error prints an ERROR level log message for a given component (like thread).
-func (g *GELog) Error(component string, format string, a ...interface{}) {
+// ErrorC prints an ERROR level log message for a given component (like thread).
+func (g *GELog) ErrorC(component string, format string, a ...interface{}) {
 	g.printMessage("E", component, format, a...)
 }
 
-// I prints an INFO level log message using the pre-configured component.
-func (g *GELog) E(format string, a ...interface{}) {
-	g.Error(g.Component, format, a...)
+// Info prints an INFO level log message using the pre-configured component.
+func (g *GELog) Error(format string, a ...interface{}) {
+	g.ErrorC(g.Component, format, a...)
 }
 
-// Critical prints a CRITICAL level log message for a given component (like thread).
-func (g *GELog) Critical(component string, format string, a ...interface{}) {
+// CriticalC prints a CRITICAL level log message for a given component (like thread).
+func (g *GELog) CriticalC(component string, format string, a ...interface{}) {
 	g.printMessage("C", component, format, a...)
 }
 
-// C prints a CRITICAL level log message using the pre-configured component.
-func (g *GELog) C(format string, a ...interface{}) {
-	g.Critical(g.Component, format, a...)
+// Crictical prints a CRITICAL level log message using the pre-configured component.
+func (g *GELog) Critical(format string, a ...interface{}) {
+	g.CriticalC(g.Component, format, a...)
 }
 
-// Profile prints a PROFILE level log message for a given component (like thread).
-func (g *GELog) Profile(component string, format string, a ...interface{}) {
+// ProfileC prints a PROFILE level log message for a given component (like thread).
+func (g *GELog) ProfileC(component string, format string, a ...interface{}) {
 	g.printMessage("P", component, format, a...)
 }
 
-// P prints a PROFILE level log message using the pre-configured component.
-func (g *GELog) P(format string, a ...interface{}) {
-	g.Profile(g.Component, format, a...)
+// Profile prints a PROFILE level log message using the pre-configured component.
+func (g *GELog) Profile(format string, a ...interface{}) {
+	g.ProfileC(g.Component, format, a...)
 }
