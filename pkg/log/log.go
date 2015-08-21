@@ -19,12 +19,36 @@
 package log
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 )
 
 // Logger which logs in the style of the Grid Engine's qmaster.
+
+// LogLevel represents the importance of the logging massage.
+type LogLevel int
+
+const (
+	Info LogLevel = iota
+	Warning
+	Error
+	Critical
+	Profile
+)
+
+// LogLevelFilter determines on which level logs should be reported.
+// Default initialization is Profile meaning all log messages are
+// written. When setting to Warning only Warning, Error, and Critical
+// messages are written.
+var LogLevelFilter LogLevel
+
+// Profiling determines if profiling information should be printed out
+// in the log (P) or not. Per default it is on.
+var Profiling bool
 
 // Example: Qmaster messages log
 // 07/08/2015 06:07:28.662|          worker|u1010|I|removing trigger to terminate job 3000000278.657
@@ -37,6 +61,12 @@ type GELog struct {
 	Hostname string
 	// File points to a file to which to log.
 	File *os.File
+}
+
+func init() {
+	// default loglevel is profile
+	LogLevelFilter = Profile
+	Profiling = true
 }
 
 // MakeLoggerHostname creates a log object which is used for writing logfiles
@@ -61,7 +91,30 @@ func MakeLogger(component string, file *os.File) *GELog {
 	return &log
 }
 
+// printMessage prints a logging message for a given logging level but
+// only when the logging level is smaller than a certain number
 func (g *GELog) printMessage(level, component, format string, a ...interface{}) {
+	if level == "P" {
+		if Profiling == false {
+			return
+		}
+	}
+	if LogLevelFilter > Info {
+		switch LogLevelFilter {
+		case Warning:
+			if level == "I" {
+				return
+			}
+		case Error:
+			if level == "I" || level == "W" {
+				return
+			}
+		case Critical:
+			if level == "I" || level == "W" || level == "E" {
+				return
+			}
+		}
+	}
 	layout := "02/01/2006 15:04:05.000"
 	msg := fmt.Sprintf(format, a...)
 	t := time.Now()
@@ -116,4 +169,68 @@ func (g *GELog) ProfileC(component string, format string, a ...interface{}) {
 // Profile prints a PROFILE level log message using the pre-configured component.
 func (g *GELog) Profile(format string, a ...interface{}) {
 	g.ProfileC(g.Component, format, a...)
+}
+
+// LogEntry represents one logging entry, i.e. one line in the logging output.
+type Entry struct {
+	Time      time.Time
+	Component string
+	Host      string
+	Level     LogLevel
+	Message   string
+}
+
+// ParseLine parses a string assumed to be in Grid Engine like logging
+// and returns a log Entry representing a line. If the line is not
+// parsable an error is returned.
+func ParseLine(line string) (le Entry, err error) {
+	parts := strings.Split(line, "|")
+	if len(parts) != 5 {
+		return le, errors.New("empty line")
+	}
+	layout := "02/01/2006 15:04:05.000"
+	le.Time, err = time.Parse(layout, parts[0])
+	le.Component = strings.TrimSpace(parts[1])
+	le.Host = strings.TrimSpace(parts[2])
+	switch parts[3] {
+	case "I":
+		le.Level = Info
+	case "W":
+		le.Level = Warning
+	case "E":
+		le.Level = Error
+	case "C":
+		le.Level = Critical
+	case "P":
+		le.Level = Profile
+	default:
+		return le, errors.New("Could not parse loglevel.")
+	}
+	le.Message = strings.TrimSpace(parts[4])
+	return le, err
+}
+
+// ParseFile parses a given file and converts it into an array of
+// logging Entry elements.
+func ParseFile(file *os.File) ([]Entry, error) {
+	var last error
+	entries := make([]Entry, 0, 0)
+	if data, err := ioutil.ReadAll(file); err != nil {
+		return nil, err
+	} else {
+		var entry Entry
+		for _, line := range strings.Split(string(data), "\n") {
+			if line == "" {
+				continue
+			}
+			if entry, last = ParseLine(line); last == nil {
+				entries = append(entries, entry)
+			}
+		}
+	}
+	return entries, last
+}
+
+func CreateChannel(file *os.File) (chan Entry, error) {
+	return nil, nil
 }
