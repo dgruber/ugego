@@ -234,3 +234,23 @@ func ParseFile(file *os.File) ([]Entry, error) {
 func CreateChannel(file *os.File) (chan Entry, error) {
 	return nil, nil
 }
+
+// ParseLevel parses a string and interpretes it as a loglevel.
+func ParseLevel(level string) (LogLevel, error) {
+	if level == "info" || level == "i" || level == "INFO" || level == "I" {
+		return Info, nil
+	}
+	if level == "warning" || level == "w" || level == "WARNING" || level == "W" {
+		return Warning, nil
+	}
+	if level == "error" || level == "e" || level == "ERROR" || level == "E" {
+		return Error, nil
+	}
+	if level == "critical" || level == "c" || level == "CRITICAL" || level == "C" {
+		return Critical, nil
+	}
+	if level == "profile" || level == "p" || level == "PROFILE" || level == "P" {
+		return Profile, nil
+	}
+	return Info, errors.New("loglevel not parsable")
+}

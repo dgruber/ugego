@@ -88,3 +88,17 @@ func TestParseLine(t *testing.T) {
 		t.Error("Time is not correct")
 	}
 }
+
+func TestParseLogLevel(t *testing.T) {
+	testwords := map[string]LogLevel{"I": Info, "warning": Warning, "C": Critical, "profile": Profile, "ERROR": Error}
+	for k, v := range testwords {
+		if res, err := ParseLevel(k); err == nil {
+			if res != v {
+				t.Errorf("loglevel %s was not parsed correctly.", k)
+			}
+		} else {
+			t.Log(k)
+			t.Error(err)
+		}
+	}
+}
