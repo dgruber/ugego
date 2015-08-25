@@ -63,6 +63,9 @@ type GELog struct {
 	File *os.File
 }
 
+// datelayout defines in which format the date is printed (UGE messages date style)
+var datelayout string = "02/01/2006 15:04:05.000"
+
 func init() {
 	// default loglevel is profile
 	LogLevelFilter = Profile
@@ -115,10 +118,9 @@ func (g *GELog) printMessage(level, component, format string, a ...interface{}) 
 			}
 		}
 	}
-	layout := "02/01/2006 15:04:05.000"
 	msg := fmt.Sprintf(format, a...)
 	t := time.Now()
-	fmt.Fprintf(g.File, "%s|%17s|%s|%s|%s\n", t.Format(layout), component, g.Hostname, level, msg)
+	fmt.Fprintf(g.File, "%s|%17s|%s|%s|%s\n", t.Format(datelayout), component, g.Hostname, level, msg)
 }
 
 // InfoC prints an INFO level log message for a given component (like thread).
@@ -171,6 +173,12 @@ func (g *GELog) Profile(format string, a ...interface{}) {
 	g.ProfileC(g.Component, format, a...)
 }
 
+// CreateProfile writes a profiling entry in the log file for a given event.
+func (g *GELog) CreateProfile(start, stop time.Time, event string) {
+	duration := stop.Sub(start)
+	g.Profile("%s took %s", event, duration)
+}
+
 // LogEntry represents one logging entry, i.e. one line in the logging output.
 type Entry struct {
 	Time      time.Time
@@ -188,8 +196,7 @@ func ParseLine(line string) (le Entry, err error) {
 	if len(parts) != 5 {
 		return le, errors.New("empty line")
 	}
-	layout := "02/01/2006 15:04:05.000"
-	le.Time, err = time.Parse(layout, parts[0])
+	le.Time, err = time.Parse(datelayout, parts[0])
 	le.Component = strings.TrimSpace(parts[1])
 	le.Host = strings.TrimSpace(parts[2])
 	switch parts[3] {
@@ -231,11 +238,14 @@ func ParseFile(file *os.File) ([]Entry, error) {
 	return entries, last
 }
 
+// CreateChannel opens a file and creates a channel of log
+// Entry structs. It keeps the file open and scans it for new
+// log file entries.
 func CreateChannel(file *os.File) (chan Entry, error) {
 	return nil, nil
 }
 
-// ParseLevel parses a string and interpretes it as a loglevel.
+// ParseLevel parses a string and interprets it as a LogLevel.
 func ParseLevel(level string) (LogLevel, error) {
 	if level == "info" || level == "i" || level == "INFO" || level == "I" {
 		return Info, nil

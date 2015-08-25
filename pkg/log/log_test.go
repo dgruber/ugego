@@ -19,6 +19,7 @@ package log
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 func TestMakeLog(t *testing.T) {
@@ -89,7 +90,7 @@ func TestParseLine(t *testing.T) {
 	}
 }
 
-func TestParseLogLevel(t *testing.T) {
+func TestParseLevel(t *testing.T) {
 	testwords := map[string]LogLevel{"I": Info, "warning": Warning, "C": Critical, "profile": Profile, "ERROR": Error}
 	for k, v := range testwords {
 		if res, err := ParseLevel(k); err == nil {
@@ -101,4 +102,12 @@ func TestParseLogLevel(t *testing.T) {
 			t.Error(err)
 		}
 	}
+}
+
+func TestCreateProfile(t *testing.T) {
+	start := time.Now()
+	log := MakeLogger("test", os.Stdout)
+	log.CreateProfile(start, time.Now(), "test1")
+	log.CreateProfile(start, time.Now(), "test2")
+	log.CreateProfile(start, time.Now(), "test3")
 }
