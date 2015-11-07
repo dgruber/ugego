@@ -198,7 +198,7 @@ func (g *GELog) CreateProfile(start, stop time.Time, event string) {
 
 // LogEntry writes a given log entry.
 func (g *GELog) LogEntry(entry Entry) {
-	g.printMessage(entry.Level, entry.Component, entry.Message)
+	g.printMessage(entry.Level.String(), entry.Component, entry.Message)
 }
 
 // Entry represents one logging entry, i.e. one line in the logging output.
