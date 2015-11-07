@@ -3,7 +3,7 @@
 package watch
 
 import (
-	"gopkg.in/tomb.v1"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/gopkg.in/tomb.v1"
 	"os"
 )
 

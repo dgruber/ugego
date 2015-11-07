@@ -5,7 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ActiveState/tail"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/github.com/ActiveState/tail"
 	"os"
 )
 

@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ActiveState/tail/ratelimiter"
-	"github.com/ActiveState/tail/util"
-	"github.com/ActiveState/tail/watch"
-	"gopkg.in/tomb.v1"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/github.com/ActiveState/tail/ratelimiter"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/github.com/ActiveState/tail/util"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/github.com/ActiveState/tail/watch"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/gopkg.in/tomb.v1"
 )
 
 var (
