@@ -41,6 +41,22 @@ const (
 	Profile
 )
 
+func (ll LogLevel) String() {
+	switch ll {
+	case Info:
+		return "I"
+	case Warning:
+		return "W"
+	case Error:
+		return "E"
+	case Critical:
+		return "C"
+	case Profile:
+		return "P"
+	}
+	return ""
+}
+
 // LogLevelFilter determines on which level logs should be reported.
 // Default initialization is Profile meaning all log messages are
 // written. When setting to Warning only Warning, Error, and Critical
