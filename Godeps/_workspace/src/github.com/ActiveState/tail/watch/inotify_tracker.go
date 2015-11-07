@@ -3,7 +3,7 @@
 package watch
 
 import (
-	"gopkg.in/fsnotify.v0"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/gopkg.in/fsnotify.v0"
 	"log"
 	"sync"
 )

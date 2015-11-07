@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ActiveState/tail/util"
-	"gopkg.in/fsnotify.v0"
-	"gopkg.in/tomb.v1"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/github.com/ActiveState/tail/util"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/gopkg.in/fsnotify.v0"
+	"github.com/dgruber/ugego/Godeps/_workspace/src/gopkg.in/tomb.v1"
 )
 
 // InotifyFileWatcher uses inotify to monitor file changes.
