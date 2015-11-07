@@ -41,7 +41,7 @@ const (
 	Profile
 )
 
-func (ll LogLevel) String() {
+func (ll LogLevel) String() string {
 	switch ll {
 	case Info:
 		return "I"
