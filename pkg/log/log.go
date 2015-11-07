@@ -21,6 +21,7 @@ package log
 import (
 	"errors"
 	"fmt"
+	"github.com/ActiveState/tail"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -29,7 +30,7 @@ import (
 
 // Logger which logs in the style of the Grid Engine's qmaster.
 
-// LogLevel represents the importance of the logging massage.
+// LogLevel represents the importance of the logging message
 type LogLevel int
 
 const (
@@ -84,7 +85,7 @@ func MakeLoggerHostname(component, hostname string, file *os.File) *GELog {
 	return &log
 }
 
-// MakeLoggerHostname creates a log object which is used for writing logfiles
+// MakeLogger creates a log object which is used for writing logfiles
 // in Grid Engine's master messages log file format.
 func MakeLogger(component string, file *os.File) *GELog {
 	var log GELog
@@ -179,7 +180,12 @@ func (g *GELog) CreateProfile(start, stop time.Time, event string) {
 	g.Profile("%s took %s", event, duration)
 }
 
-// LogEntry represents one logging entry, i.e. one line in the logging output.
+// LogEntry writes a given log entry.
+func (g *GELog) LogEntry(entry Entry) {
+	g.printMessage(entry.Level, entry.Component, entry.Message)
+}
+
+// Entry represents one logging entry, i.e. one line in the logging output.
 type Entry struct {
 	Time      time.Time
 	Component string
@@ -218,7 +224,8 @@ func ParseLine(line string) (le Entry, err error) {
 }
 
 // ParseFile parses a given file and converts it into an array of
-// logging Entry elements.
+// logging Entry elements. Note it reads  the complete file in
+// memory.
 func ParseFile(file *os.File) ([]Entry, error) {
 	var last error
 	entries := make([]Entry, 0, 0)
@@ -238,11 +245,33 @@ func ParseFile(file *os.File) ([]Entry, error) {
 	return entries, last
 }
 
-// CreateChannel opens a file and creates a channel of log
+// CreateChannel opens a logfile and creates a channel of log
 // Entry structs. It keeps the file open and scans it for new
-// log file entries.
-func CreateChannel(file *os.File) (chan Entry, error) {
-	return nil, nil
+// log file entries forever.
+func CreateChannel(file string) (chan Entry, error) {
+	lineCh := make(chan Entry, 1024)
+
+	if t, err := tail.TailFile(file, tail.Config{Follow: true}); err == nil {
+		// start tailing the logfile in background
+		go func() {
+			// writing to a closed channel panics - hence
+			// we need to recover here since closing is our
+			// "official" way to stop tailing
+			defer func() {
+				t.Stop()
+				recover()
+			}()
+			for line := range t.Lines {
+				if entry, errParse := ParseLine(line.Text); errParse == nil {
+					// blocking when buffer is full
+					lineCh <- entry
+				}
+			}
+		}()
+	} else {
+		return nil, err
+	}
+	return lineCh, nil
 }
 
 // ParseLevel parses a string and interprets it as a LogLevel.

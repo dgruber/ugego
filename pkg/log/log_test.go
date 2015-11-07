@@ -17,6 +17,7 @@
 package log
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -110,4 +111,56 @@ func TestCreateProfile(t *testing.T) {
 	log.CreateProfile(start, time.Now(), "test1")
 	log.CreateProfile(start, time.Now(), "test2")
 	log.CreateProfile(start, time.Now(), "test3")
+}
+
+func TestCreateChannel(t *testing.T) {
+	name := "test_create_channel.tmp"
+	// create a file and fill it with a line
+	f, errCreate := os.Create(name)
+	if errCreate != nil {
+		t.Fatalf("Can't create test file: %s", errCreate)
+	}
+	defer func() {
+		f.Close()
+		os.Remove(name)
+	}()
+	log := MakeLogger("TestCreateChannel", f)
+	LogLevelFilter = Info
+	log.Critical("critical error happend")
+	log.Info("critical written")
+
+	// attach a channel to it
+	ch, err := CreateChannel(name)
+	if err != nil {
+		t.Fatalf("Error when creating channel: %s", err)
+	}
+
+	// read first line out
+	line := <-ch
+
+	if line.Level != Critical {
+		t.Fatalf("Loglevel not recognized correctly.")
+	}
+
+	// add more entries
+	log.Error("error happened")
+	log.Info("something interesting happened")
+	log.Profile("this took soo long")
+	log.Warning("didn't found that but I could revocer easily - no worries")
+
+	// check if channel returned all entries
+	amount := 0
+	for ent := range ch {
+		if err != nil {
+			t.Fatalf("error when getting channel entries happened: %s", err)
+		}
+		fmt.Println(ent)
+		amount++
+		if amount >= 4 {
+			t.Log("Got 4 more entries")
+			break
+		}
+	}
+
+	// close channel?
 }

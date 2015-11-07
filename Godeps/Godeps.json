@@ -1,0 +1,14 @@
+{
+	"ImportPath": "github.com/dgruber/ugego",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/ActiveState/tail",
+			"Comment": "v0-10-g4b368d1",
+			"Rev": "4b368d1590196ade29993d6a0896591403180bbd"
+		}
+	]
+}
