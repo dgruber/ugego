@@ -98,9 +98,7 @@ func GetUserLists(userlist ...string) ([]UserList, error) {
 			csvUserList = fmt.Sprintf("%s,%s", csvUserList, v)
 		}
 	}
-	log.Printf("Calling: qconf -su %s\n", csvUserList)
 
-	cmd := exec.Command(qconf, "-su", csvUserList)
 	if out, errOut := cmd.CombinedOutput(); errOut == nil {
 		// empty line is the delimiter
 		uls := strings.Split(string(out), "\n\n")
