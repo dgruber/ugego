@@ -40,6 +40,10 @@ func TestParseLine(t *testing.T) {
 	if entry.GroupID != "sgegroup" {
 		t.Errorf("GroupID is not sgegroup: %s", entry.GroupID)
 	}
+	// ..
+	if entry.Failed != 100 {
+		t.Errorf("Failed is not 100 it is %d", entry.Failed)
+	}
 	// ...
 	if entry.PosixPriority != 0 {
 		t.Errorf("POSIX priority is not 0 it is %d", entry.PosixPriority)
@@ -57,5 +61,12 @@ func TestParseLine(t *testing.T) {
 	// ...
 	if entry.Category != "-jc vcontrol.default -q vcontrol.q -l h_stack=16M,s_stack=16M -binding no_job_binding 0 0 0 0 no_explicit_binding" {
 		t.Errorf("Entry category is wrong: %s", entry.Category)
+	}
+}
+
+func BenchmarkParseLine(b *testing.B) {
+	line := []byte(testline1)
+	for i := 0; i < b.N; i++ {
+		ParseLine(line)
 	}
 }

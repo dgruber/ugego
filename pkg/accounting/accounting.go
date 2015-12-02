@@ -38,7 +38,7 @@ type Entry struct {
 	SubmissionTime                   time.Time
 	StartTime                        time.Time
 	EndTime                          time.Time
-	Failed                           bool
+	Failed                           int
 	ExitStatus                       int
 	RuWallclock                      int64
 	RuUtime                          int64
@@ -130,23 +130,24 @@ func ParseLine(line []byte) (Entry, error) {
 	// instead of seconds since epoch as date fields But this
 	// is also recogized by the magnitude of the number.
 	for i := 0; i < v.NumField() && i < len(chunks); i++ {
-		switch v.Field(i).Kind() {
+		field := v.Field(i)
+		switch field.Kind() {
 		case reflect.String:
-			v.Field(i).SetString(string(chunks[i]))
+			field.SetString(string(chunks[i]))
 		case reflect.Int64:
 			i64val, _ := strconv.ParseInt(string(chunks[i]), 10, 64)
-			v.Field(i).SetInt(i64val)
+			field.SetInt(i64val)
 		case reflect.Int:
 			ival, _ := strconv.Atoi(string(chunks[i]))
-			v.Field(i).SetInt(int64(ival))
+			field.SetInt(int64(ival))
 		case reflect.Float64:
 			fl, _ := strconv.ParseFloat(string(chunks[i]), 64)
-			v.Field(i).SetFloat(fl)
+			field.SetFloat(fl)
 		case reflect.Struct:
 			// check if it is a Time (we trust it is from time package)
-			if v.Field(i).Type().Name() == "Time" {
+			if field.Type().Name() == "Time" {
 				t := parseTime(chunks[i])
-				v.Field(i).Set(reflect.ValueOf(t))
+				field.Set(reflect.ValueOf(t))
 			}
 		}
 	}
