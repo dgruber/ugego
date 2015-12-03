@@ -70,3 +70,33 @@ func BenchmarkParseLine(b *testing.B) {
 		ParseLine(line)
 	}
 }
+
+func TestParseSubmitCommand(t *testing.T) {
+	sc := "qsub -terse -V -v XYZ=abc -v XYZ2=y -v BLA=blub -l HEY=1,HOY=4,WD=/scratch -l VJS=sleep -l PORT=1 -l ARG=10 -jc CLASS -jsv /my/jsv -q all.q -N name /path/to/script.sh"
+	requests := ParseSubmitCommand(sc)
+	if requests.Complexes["WD"] != "/scratch" {
+		t.Errorf("Could not correctly parse WD")
+	}
+	if requests.Complexes["ARG"] != "10" {
+		t.Errorf("Could not correctly parse ARG")
+	}
+	if requests.Complexes["HEY"] != "1" {
+		t.Errorf("Could not correctly parse HEY")
+	}
+	if requests.Environment["XYZ"] != "abc" {
+		t.Errorf("Could not correctly parse XYZ environment variable")
+	}
+	if requests.Environment["XYZ2"] != "y" {
+		t.Errorf("Could not correctly parse XYZ2 environment variable")
+	}
+	if requests.JobClass != "CLASS" {
+		t.Errorf("Could not correctly parse JobClass")
+	}
+}
+
+func BenchmarkParseSubmitCommand(b *testing.B) {
+	sc := "qsub -terse -V -v XYZ=abc -v XYZ2=y -v BLA=blub -l HEY=1,HOY=4,WD=/scratch -l VJS=sleep -l PORT=1 -l ARG=10 -jc CLASS -jsv /my/jsv -q all.q -N name /path/to/script.sh"
+	for i := 0; i < b.N; i++ {
+		ParseSubmitCommand(sc)
+	}
+}

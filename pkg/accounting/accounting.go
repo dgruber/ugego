@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -152,4 +153,64 @@ func ParseLine(line []byte) (Entry, error) {
 		}
 	}
 	return e, nil
+}
+
+// SubmitRequests are the parsable parts of the submit command
+// out of the accounting file. It is returned by ParseSubmitCommand.
+type SubmitRequests struct {
+	Complexes   map[string]string
+	Environment map[string]string
+	JobClass    string
+}
+
+// ParseSubmitCommand takes the submit command from the accounting Entry
+// and parses certain interesting elements out of it.
+func ParseSubmitCommand(command string) SubmitRequests {
+	var r SubmitRequests
+	r.Complexes = make(map[string]string, 32)
+	r.Environment = make(map[string]string, 32)
+	// request types
+	const (
+		unknownRequest = iota
+		resourceRequest
+		environmentRequest
+		jobClassRequest
+	)
+	mode := unknownRequest
+	// Example:
+	// qsub -terse -V -v XYZ=abc -v XYZ=y -v BLA=blub -l HEY=1,HOY=4,WD=/scratch -l VJS=sleep -l PORT=1 -l ARG=10 -jc CLASS -jsv /my/jsv -q all.q -N name /path/to/script.sh
+	parts := strings.Split(command, " ")
+	for _, word := range parts {
+		if word == "-l" {
+			mode = resourceRequest
+			continue
+		}
+		if word == "-v" {
+			mode = environmentRequest
+			continue
+		}
+		if word == "-jc" {
+			mode = jobClassRequest
+			continue
+		}
+		switch mode {
+		case resourceRequest, environmentRequest:
+			kvs := strings.Split(word, ",")
+			for _, kv := range kvs {
+				pair := strings.Split(kv, "=")
+				if len(pair) == 2 {
+					if mode == resourceRequest {
+						r.Complexes[pair[0]] = pair[1]
+					} else {
+						r.Environment[pair[0]] = pair[1]
+					}
+				}
+			}
+		case jobClassRequest:
+			r.JobClass = word
+		}
+		// reset after detecting a part
+		mode = unknownRequest
+	}
+	return r
 }
