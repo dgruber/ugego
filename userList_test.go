@@ -44,7 +44,7 @@ entries daniel,root,%wheel`
 		t.Errorf("OTicket is not 77, it is %d", u.OTicket)
 	}
 	if len(u.Entries) != 3 {
-		t.Errorf("Entries are not 3 there are %d", u.Entries)
+		t.Errorf("Entries are not 3 there are %d", len(u.Entries))
 		return
 	}
 	if u.Entries[0] != "daniel" {

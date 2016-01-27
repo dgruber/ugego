@@ -30,18 +30,24 @@ import (
 
 // Logger which logs in the style of the Grid Engine's qmaster.
 
-// LogLevel represents the importance of the logging message
-type LogLevel int
+// Level represents the importance of the logging message
+type Level int
 
 const (
-	Info LogLevel = iota
+	// Info log-level is only for printing out what was done
+	Info Level = iota
+	// Warning is printed when something unexpected happend
 	Warning
+	// Error is printed when something does not work correctly
 	Error
+	// Critical means a critical component does not work correctly
 	Critical
+	// Profile specifies an informal profiling / timing message
 	Profile
 )
 
-func (ll LogLevel) String() string {
+// String returns the Univa Grid Engine compatible string representation of a log-level.
+func (ll Level) String() string {
 	switch ll {
 	case Info:
 		return "I"
@@ -61,7 +67,7 @@ func (ll LogLevel) String() string {
 // Default initialization is Profile meaning all log messages are
 // written. When setting to Warning only Warning, Error, and Critical
 // messages are written.
-var LogLevelFilter LogLevel
+var LogLevelFilter Level
 
 // Profiling determines if profiling information should be printed out
 // in the log (P) or not. Per default it is on.
@@ -81,7 +87,7 @@ type GELog struct {
 }
 
 // datelayout defines in which format the date is printed (UGE messages date style)
-var datelayout string = "02/01/2006 15:04:05.000"
+var datelayout = "02/01/2006 15:04:05.000"
 
 func init() {
 	// default loglevel is profile
@@ -145,8 +151,8 @@ func (g *GELog) InfoC(component string, format string, a ...interface{}) {
 	g.printMessage("I", component, format, a...)
 }
 
-// Info prints an INFO level log message using the pre-configured component.
-func (g *GELog) Info(format string, a ...interface{}) {
+// Infof prints an INFO level log message using the pre-configured component.
+func (g *GELog) Infof(format string, a ...interface{}) {
 	g.InfoC(g.Component, format, a...)
 }
 
@@ -155,8 +161,8 @@ func (g *GELog) WarningC(component string, format string, a ...interface{}) {
 	g.printMessage("W", component, format, a...)
 }
 
-// Warning prints a WARNING level log message using the pre-configured component.
-func (g *GELog) Warning(format string, a ...interface{}) {
+// Warningf prints a WARNING level log message using the pre-configured component.
+func (g *GELog) Warningf(format string, a ...interface{}) {
 	g.WarningC(g.Component, format, a...)
 }
 
@@ -165,8 +171,8 @@ func (g *GELog) ErrorC(component string, format string, a ...interface{}) {
 	g.printMessage("E", component, format, a...)
 }
 
-// Info prints an INFO level log message using the pre-configured component.
-func (g *GELog) Error(format string, a ...interface{}) {
+// Errorf prints an INFO level log message using the pre-configured component.
+func (g *GELog) Errorf(format string, a ...interface{}) {
 	g.ErrorC(g.Component, format, a...)
 }
 
@@ -175,8 +181,8 @@ func (g *GELog) CriticalC(component string, format string, a ...interface{}) {
 	g.printMessage("C", component, format, a...)
 }
 
-// Crictical prints a CRITICAL level log message using the pre-configured component.
-func (g *GELog) Critical(format string, a ...interface{}) {
+// Criticalf prints a CRITICAL level log message using the pre-configured component.
+func (g *GELog) Criticalf(format string, a ...interface{}) {
 	g.CriticalC(g.Component, format, a...)
 }
 
@@ -185,15 +191,15 @@ func (g *GELog) ProfileC(component string, format string, a ...interface{}) {
 	g.printMessage("P", component, format, a...)
 }
 
-// Profile prints a PROFILE level log message using the pre-configured component.
-func (g *GELog) Profile(format string, a ...interface{}) {
+// Profilef prints a PROFILE level log message using the pre-configured component.
+func (g *GELog) Profilef(format string, a ...interface{}) {
 	g.ProfileC(g.Component, format, a...)
 }
 
 // CreateProfile writes a profiling entry in the log file for a given event.
 func (g *GELog) CreateProfile(start, stop time.Time, event string) {
 	duration := stop.Sub(start)
-	g.Profile("%s took %s", event, duration)
+	g.Profilef("%s took %s", event, duration)
 }
 
 // LogEntry writes a given log entry.
@@ -206,7 +212,7 @@ type Entry struct {
 	Time      time.Time
 	Component string
 	Host      string
-	Level     LogLevel
+	Level     Level
 	Message   string
 }
 
@@ -240,22 +246,24 @@ func ParseLine(line string) (le Entry, err error) {
 }
 
 // ParseFile parses a given file and converts it into an array of
-// logging Entry elements. Note it reads  the complete file in
-// memory.
+// logging Entry elements. Note, it reads the complete file in
+// memory!
 func ParseFile(file *os.File) ([]Entry, error) {
 	var last error
 	entries := make([]Entry, 0, 0)
-	if data, err := ioutil.ReadAll(file); err != nil {
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
 		return nil, err
-	} else {
-		var entry Entry
-		for _, line := range strings.Split(string(data), "\n") {
-			if line == "" {
-				continue
-			}
-			if entry, last = ParseLine(line); last == nil {
-				entries = append(entries, entry)
-			}
+	}
+
+	var entry Entry
+	for _, line := range strings.Split(string(data), "\n") {
+		if line == "" {
+			continue
+		}
+		if entry, last = ParseLine(line); last == nil {
+			entries = append(entries, entry)
 		}
 	}
 	return entries, last
@@ -291,7 +299,7 @@ func CreateChannel(file string) (chan Entry, error) {
 }
 
 // ParseLevel parses a string and interprets it as a LogLevel.
-func ParseLevel(level string) (LogLevel, error) {
+func ParseLevel(level string) (Level, error) {
 	if level == "info" || level == "i" || level == "INFO" || level == "I" {
 		return Info, nil
 	}

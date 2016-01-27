@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-var testline1 string = "vcontrol.q:maui:sgegroup:sgetest:vcontrol:1:sge:0:1448376371581:1448376371857:1448438703533:100:137:62331.676:0.121:0.061:5456:0:0:0:0:23373:0:0:16:168:0:0:0:352:84:NONE:defaultdepartment:NONE:1:0:85.400:233.209213:0.796364:-jc vcontrol.default -q vcontrol.q -l h_stack=16M,s_stack=16M -binding no_job_binding 0 0 0 0 no_explicit_binding:0.000000:NONE:6099869696:0:0:vcontrol.default:sgetest@maui:0:0:maui:NONE:NONE:62331.836000"
+var testline1 = "vcontrol.q:maui:sgegroup:sgetest:vcontrol:1:sge:0:1448376371581:1448376371857:1448438703533:100:137:62331.676:0.121:0.061:5456:0:0:0:0:23373:0:0:16:168:0:0:0:352:84:NONE:defaultdepartment:NONE:1:0:85.400:233.209213:0.796364:-jc vcontrol.default -q vcontrol.q -l h_stack=16M,s_stack=16M -binding no_job_binding 0 0 0 0 no_explicit_binding:0.000000:NONE:6099869696:0:0:vcontrol.default:sgetest@maui:0:0:maui:NONE:NONE:62331.836000"
 
 func TestParseLine(t *testing.T) {
 	entry, err := ParseLine([]byte(testline1))

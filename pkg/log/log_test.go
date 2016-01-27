@@ -25,15 +25,15 @@ import (
 
 func TestMakeLog(t *testing.T) {
 	log := MakeLogger("scheduler", os.Stdout)
-	log.Info("my test %s", "info")
+	log.Infof("my test %s", "info")
 	log.InfoC("test", "my test %s", "info")
-	log.Warning("my test %s", "warning")
+	log.Warningf("my test %s", "warning")
 	log.WarningC("test", "my test %s", "warning")
-	log.Error("my test %s", "error")
+	log.Errorf("my test %s", "error")
 	log.ErrorC("test", "my test %s", "error")
-	log.Critical("my test %s", "critical")
+	log.Criticalf("my test %s", "critical")
 	log.CriticalC("test", "my test %s", "critical")
-	log.Profile("my test %s", "profile")
+	log.Profilef("my test %s", "profile")
 	log.ProfileC("test", "my test %s", "profile")
 }
 
@@ -41,24 +41,24 @@ func TestLogLevelFilter(t *testing.T) {
 	LogLevelFilter = Error
 	fs, _ := os.Create("test_file_output_logging")
 	log := MakeLogger("scheduler", fs)
-	log.Info("my test %s", "info")
+	log.Infof("my test %s", "info")
 	log.InfoC("test", "my test %s", "info")
-	log.Warning("my test %s", "warning")
+	log.Warningf("my test %s", "warning")
 	log.WarningC("test", "my test %s", "warning")
-	log.Error("my test %s", "error")
+	log.Errorf("my test %s", "error")
 	log.ErrorC("test", "my test %s", "error")
-	log.Critical("my test %s", "critical")
+	log.Criticalf("my test %s", "critical")
 	log.CriticalC("test", "my test %s", "critical")
-	log.Profile("my test %s", "profile")
+	log.Profilef("my test %s", "profile")
 	log.ProfileC("test", "my test %s", "profile")
 	// TODO read file and check output
 	file, err := os.Open("test_file_output_logging")
 	if err != nil {
-		t.Error("error opening file")
+		t.Errorf("error opening file")
 	}
 	entries, errFile := ParseFile(file)
 	if errFile != nil {
-		t.Error("error parsing file: ", errFile)
+		t.Errorf("error parsing file: %s", errFile)
 	}
 	if len(entries) != 6 {
 		t.Log(entries)
@@ -66,11 +66,11 @@ func TestLogLevelFilter(t *testing.T) {
 		for k, v := range entries {
 			t.Log(k, v)
 		}
-		t.Error("couldn't parse 6 entries")
+		t.Errorf("couldn't parse 6 entries")
 	}
 	file.Close()
 	if os.Remove("test_file_output_logging") != nil {
-		t.Error("could not delete test file")
+		t.Errorf("could not delete test file")
 	}
 }
 
@@ -80,19 +80,19 @@ func TestParseLine(t *testing.T) {
 		panic(err)
 	}
 	if line.Component != "worker" {
-		t.Error("Component is not recognized")
+		t.Errorf("Component is not recognized")
 	}
 	if line.Host != "u1010" {
-		t.Error("Host is not recognized")
+		t.Errorf("Host is not recognized")
 	}
 	layout := "02/01/2006 15:04:05.000"
 	if tm := line.Time.Format(layout); tm != "07/08/2015 06:07:28.662" {
-		t.Error("Time is not correct")
+		t.Errorf("Time is not correct")
 	}
 }
 
 func TestParseLevel(t *testing.T) {
-	testwords := map[string]LogLevel{"I": Info, "warning": Warning, "C": Critical, "profile": Profile, "ERROR": Error}
+	testwords := map[string]Level{"I": Info, "warning": Warning, "C": Critical, "profile": Profile, "ERROR": Error}
 	for k, v := range testwords {
 		if res, err := ParseLevel(k); err == nil {
 			if res != v {
@@ -126,8 +126,8 @@ func TestCreateChannel(t *testing.T) {
 	}()
 	log := MakeLogger("TestCreateChannel", f)
 	LogLevelFilter = Info
-	log.Critical("critical error happend")
-	log.Info("critical written")
+	log.Criticalf("critical error happend")
+	log.Infof("critical written")
 
 	// attach a channel to it
 	ch, err := CreateChannel(name)
@@ -143,10 +143,10 @@ func TestCreateChannel(t *testing.T) {
 	}
 
 	// add more entries
-	log.Error("error happened")
-	log.Info("something interesting happened")
-	log.Profile("this took soo long")
-	log.Warning("didn't found that but I could revocer easily - no worries")
+	log.Errorf("error happened")
+	log.Infof("something interesting happened")
+	log.Profilef("this took soo long")
+	log.Warningf("didn't found that but I could revocer easily - no worries")
 
 	// check if channel returned all entries
 	amount := 0
@@ -157,7 +157,7 @@ func TestCreateChannel(t *testing.T) {
 		fmt.Println(ent)
 		amount++
 		if amount >= 4 {
-			t.Log("Got 4 more entries")
+			t.Logf("Got 4 more entries")
 			break
 		}
 	}

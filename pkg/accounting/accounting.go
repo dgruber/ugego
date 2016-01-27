@@ -14,6 +14,8 @@
    limitations under the License.
 */
 
+// Package accounting provides helper functions for parsing and creating
+// Univa Grid Engine compatible accounting files.
 package accounting
 
 import (
@@ -112,7 +114,7 @@ func parseTime(column []byte) time.Time {
 func ParseLine(line []byte) (Entry, error) {
 	// split at ":" (strings are utf-8 hence we are on byte level)
 	chunks := bytes.Split(line, []byte(":"))
-	for i, _ := range chunks {
+	for i := range chunks {
 		// replace special character to ":" within a chunk
 		chunks[i] = bytes.Replace(chunks[i], []byte("\xFF"), []byte(":"), 0)
 	}
