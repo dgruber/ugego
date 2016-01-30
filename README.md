@@ -1,7 +1,7 @@
 # ugego
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/dgruber/ugego)
-[![Apache V2 License](http://img.shields.io/badge/license-BSD-blue.svg)](https://github.com/dgruber/ugogo/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/mashape/apistatus.svg)](http://godoc.org/github.com/dgruber/ugego)
 [![Go Report Card](http://goreportcard.com/badge/dgruber/drmaa)](http://goreportcard.com/report/dgruber/ugego)
 
 
